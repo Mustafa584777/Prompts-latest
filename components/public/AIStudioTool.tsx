@@ -59,37 +59,49 @@ const PROMPT_PRESETS = [
   'Cinematic shot of a vintage 1967 Mustang driving along California coastal highway at dusk, film grain 35mm',
 ];
 
-const IMAGE_MODELS = [
+const GEMINI_MODELS = [
   {
-    id: 'flux',
-    name: 'Flux.1 (Recommended)',
-    badge: 'Pro Quality',
-    description: 'Extremely detailed, highly obedient photorealism',
+    id: 'gemini-2.5-flash',
+    name: 'Gemini 2.5 Flash',
+    badge: 'Recommended',
+    description: 'Fast, high-fidelity multimodal vision & art direction',
     isDefault: true,
   },
   {
-    id: 'flux-realism',
-    name: 'Flux Realism',
-    badge: 'Photography',
-    description: 'Tuned specifically for lifelike portraits and photos',
+    id: 'gemini-3.7-flash',
+    name: 'Gemini 3.7 Flash',
+    badge: 'Next-Gen',
+    description: 'Advanced reasoning, fine photorealism & composition',
   },
   {
-    id: 'flux-anime',
-    name: 'Flux Anime',
-    badge: 'Stylized',
-    description: 'High quality anime and illustration style',
+    id: 'gemini-3.1-flash-lite',
+    name: 'Gemini 3.1 Flash Lite',
+    badge: 'Ultra Fast',
+    description: 'Instant lightweight prompt optimization',
   },
   {
-    id: 'flux-3d',
-    name: 'Flux 3D',
-    badge: '3D Render',
-    description: 'Pixar-like 3D renders and CGI artwork',
+    id: 'gemini-flash-latest',
+    name: 'Gemini Flash Latest',
+    badge: 'Latest',
+    description: 'Continuously updated production Flash model',
   },
   {
-    id: 'turbo',
-    name: 'SDXL Turbo',
-    badge: 'Fast',
-    description: 'High-speed generation for rapid iteration',
+    id: 'gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro',
+    badge: 'Deep Creative',
+    description: 'Complex cinematic reasoning & art direction',
+  },
+  {
+    id: 'gemini-2.5-flash-lite',
+    name: 'Gemini 2.5 Flash Lite',
+    badge: 'Lightweight',
+    description: 'Fastest generation with reduced latency',
+  },
+  {
+    id: 'imagen-3.0-generate-002',
+    name: 'Google Imagen 3',
+    badge: 'Photorealistic',
+    description: 'Deep photorealism & prompt adherence',
   },
 ];
 
@@ -156,7 +168,7 @@ export const AIStudioTool = () => {
     return '';
   });
   const [aspectRatio, setAspectRatio] = useState<string>('1:1');
-  const [selectedImageModel, setSelectedImageModel] = useState<string>('gemini-2.5-flash');
+  const [selectedGeminiModel, setSelectedGeminiModel] = useState<string>('gemini-2.5-flash');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState<boolean>(false);
   const [enhanceWithAi, setEnhanceWithAi] = useState<boolean>(true);
   const [isGeneratingImage, setIsGeneratingImage] = useState<boolean>(false);
@@ -270,7 +282,7 @@ export const AIStudioTool = () => {
           action: 'image_to_prompt',
           image: uploadedImage,
           styleFocus,
-          selectedModel: selectedImageModel,
+          selectedModel: selectedGeminiModel,
         }),
       });
 
@@ -310,7 +322,7 @@ export const AIStudioTool = () => {
       composition: extractedData.composition,
       colorPalette: extractedData.colorPalette,
       aspectRatio: extractedData.aspectRatio || '16:9',
-      modelUsed: selectedImageModel,
+      modelUsed: selectedGeminiModel,
       tags: extractedData.tags,
       createdAt: Date.now(),
     };
@@ -335,7 +347,7 @@ export const AIStudioTool = () => {
         body: JSON.stringify({
           action: 'enhance_prompt',
           prompt: promptInput,
-          selectedModel: selectedImageModel,
+          selectedModel: selectedGeminiModel,
         }),
       });
 
@@ -374,7 +386,7 @@ export const AIStudioTool = () => {
           referenceImage: referenceImage || undefined,
           aspectRatio,
           enhanceWithAi,
-          selectedModel: selectedImageModel,
+          selectedModel: selectedGeminiModel,
         }),
       });
 
@@ -386,7 +398,7 @@ export const AIStudioTool = () => {
           prompt: json.data.prompt || textToRun,
           aspectRatio: json.data.aspectRatio || aspectRatio,
           referenceImageUrl: referenceImage || undefined,
-          modelUsed: json.data.modelUsed || selectedImageModel,
+          modelUsed: json.data.modelUsed || selectedGeminiModel,
           timestamp: Date.now(),
         };
 
@@ -414,19 +426,7 @@ export const AIStudioTool = () => {
       .replace(/\s+/g, ' ')
       .trim()
       .slice(0, 260);
-
-    let width = 1024;
-    let height = 1024;
-    switch (aspectRatio) {
-      case '16:9': width = 1280; height = 720; break;
-      case '9:16': width = 720; height = 1280; break;
-      case '4:5': width = 864; height = 1080; break;
-      case '3:4': width = 768; height = 1024; break;
-      case '1:1': default: width = 1024; height = 1024; break;
-    }
-
-    const targetModel = selectedImageModel || 'flux';
-    const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=${width}&height=${height}&model=${targetModel}&nologo=true&seed=${newSeed}`;
+    const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${newSeed}`;
     setIsImageLoading(true);
     setImageLoadError(false);
     setCurrentGeneratedImage((prev) => prev ? { ...prev, imageUrl: newUrl } : null);
@@ -450,7 +450,7 @@ export const AIStudioTool = () => {
       imageUrl: currentGeneratedImage.imageUrl,
       referenceImageUrl: currentGeneratedImage.referenceImageUrl,
       aspectRatio: currentGeneratedImage.aspectRatio,
-      modelUsed: currentGeneratedImage.modelUsed || selectedImageModel,
+      modelUsed: currentGeneratedImage.modelUsed || selectedGeminiModel,
       createdAt: Date.now(),
     };
 
@@ -495,7 +495,7 @@ export const AIStudioTool = () => {
   };
 
   const selectedModelObj =
-    IMAGE_MODELS.find((m) => m.id === selectedImageModel) || IMAGE_MODELS[0];
+    GEMINI_MODELS.find((m) => m.id === selectedGeminiModel) || GEMINI_MODELS[0];
 
   return (
     <main className="min-h-screen bg-[#fafafa] dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 pb-28">
@@ -950,17 +950,17 @@ export const AIStudioTool = () => {
                     {/* Dropdown Menu Items */}
                     {isModelDropdownOpen && (
                       <div className="absolute z-50 mt-2 inset-x-0 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-2xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150 max-h-72 overflow-y-auto">
-                        {IMAGE_MODELS.map((model) => (
+                        {GEMINI_MODELS.map((model) => (
                           <button
                             key={model.id}
                             type="button"
                             onClick={() => {
-                              setSelectedImageModel(model.id);
+                              setSelectedGeminiModel(model.id);
                               setIsModelDropdownOpen(false);
                               showToast(`Selected ${model.name}`);
                             }}
                             className={`w-full p-2.5 rounded-xl text-left transition-colors flex items-center justify-between ${
-                              selectedImageModel === model.id
+                              selectedGeminiModel === model.id
                                 ? 'bg-red-50 dark:bg-red-950/50 text-[#E60023]'
                                 : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200'
                             }`}
@@ -976,7 +976,7 @@ export const AIStudioTool = () => {
                                 {model.description}
                               </span>
                             </div>
-                            {selectedImageModel === model.id && (
+                            {selectedGeminiModel === model.id && (
                               <Check className="w-4 h-4 text-[#E60023] shrink-0" />
                             )}
                           </button>

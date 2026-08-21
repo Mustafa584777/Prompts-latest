@@ -652,9 +652,7 @@ export const PromptDetailModal = () => {
                       alt={pin.imageAlt || pin.title}
                       width={800}
                       height={1000}
-                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500 select-none pointer-events-none"
-                      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
-                      draggable={false}
+                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                       loading="lazy"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"

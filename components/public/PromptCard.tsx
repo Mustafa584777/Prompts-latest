@@ -50,9 +50,7 @@ export const PromptCard = ({ post }: { post: PromptPost }) => {
             alt={post.imageAlt || post.title}
             width={600}
             height={800}
-            className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-500 ease-out select-none pointer-events-none"
-            style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
-            draggable={false}
+            className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-500 ease-out"
             referrerPolicy="no-referrer"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             loading="lazy"
