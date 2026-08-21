@@ -11,7 +11,11 @@ const DEFAULT_FALLBACK_MODELS = [
 ];
 
 async function generateWithModel(ai: GoogleGenAI, preferredModel: string | undefined, payload: any) {
-  const modelToUse = preferredModel && preferredModel !== 'imagen-3.0-generate-002'
+  // If the frontend passes an image synthesis model ID (like 'flux' or 'turbo'),
+  // we must ignore it for the text/reasoning phase and use a Gemini model.
+  const validGeminiTextModels = ['gemini-2.5-flash', 'gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-2.5-pro', 'gemini-2.5-flash-lite'];
+  
+  const modelToUse = (preferredModel && validGeminiTextModels.includes(preferredModel))
     ? preferredModel
     : 'gemini-2.5-flash';
 
@@ -299,8 +303,12 @@ Respond ONLY with the final enhanced prompt text, nothing else. Keep it under 65
         .slice(0, 260);
 
       const encodedPrompt = encodeURIComponent(cleanPromptForEngine || 'masterpiece cinematic visual 8k');
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&nologo=true&seed=${seed}`;
-      const alternativeUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=turbo&nologo=true&seed=${seed + 77}`;
+      const targetModel = selectedModel || 'flux';
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=${targetModel}&nologo=true&seed=${seed}`;
+      
+      // Providing a fallback URL just in case, typically turbo is fast but we can use any
+      const altModel = targetModel === 'turbo' ? 'flux' : 'turbo';
+      const alternativeUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=${altModel}&nologo=true&seed=${seed + 77}`;
 
       return NextResponse.json({
         success: true,

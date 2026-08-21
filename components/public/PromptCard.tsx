@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { PromptPost } from '@/types/prompt';
 import { useApp } from '@/context/AppContext';
 import Image from 'next/image';
-import { Sparkles, Copy, Check } from 'lucide-react';
+import { Sparkles, Copy, Check, Bookmark } from 'lucide-react';
 import { PersonalizationEngine } from '@/lib/personalization';
 
 export const PromptCard = ({ post }: { post: PromptPost }) => {
-  const { setSelectedPost, toggleBookmark, bookmarkedIds, copyPromptToClipboard, tasteProfile, setCurrentView } = useApp();
+  const { setSelectedPost, toggleBookmark, bookmarkedIds, copyPromptToClipboard, tasteProfile, setCurrentView, showToast } = useApp();
   const [copied, setCopied] = useState(false);
   const isBookmarked = bookmarkedIds.includes(post.id);
 
@@ -28,8 +28,11 @@ export const PromptCard = ({ post }: { post: PromptPost }) => {
 
   const handleGenerateImagePrompt = (e: React.MouseEvent) => {
     e.stopPropagation();
-    sessionStorage.setItem('auraprompt_studio_preload', post.promptText);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('auraprompt_studio_preload', post.promptText);
+    }
     setCurrentView('studio-tool');
+    showToast('Loaded prompt into AI Studio Image Generator!');
   };
 
   return (
@@ -47,7 +50,9 @@ export const PromptCard = ({ post }: { post: PromptPost }) => {
             alt={post.imageAlt || post.title}
             width={600}
             height={800}
-            className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-500 ease-out"
+            className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-500 ease-out select-none pointer-events-none"
+            style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
+            draggable={false}
             referrerPolicy="no-referrer"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             loading="lazy"
@@ -59,64 +64,60 @@ export const PromptCard = ({ post }: { post: PromptPost }) => {
         )}
 
         {/* Pinterest Dark Hover Overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-300 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 pointer-events-none" />
 
-        {/* Top Left AI Match Badge (Subtle on hover or when high affinity) */}
-        <div className="absolute top-2.5 left-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <div className="px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-[10px] font-black flex items-center gap-1 shadow-md">
-            <Sparkles className="w-2.5 h-2.5 text-[#ff4763]" />
-            <span>{scoreData.matchPercentage}% Match</span>
-          </div>
-        </div>
-
-        {/* Top Right Save Button (White on hover) */}
-        <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+        {/* Top Floating Action Bar on Hover: Generate (Left) & Save (Right) in White Colour */}
+        <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+          {/* Generate Icon Button in White */}
           <button
-            onClick={handleBookmark}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md transition-all transform active:scale-95 ${
-              isBookmarked
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
-                : 'bg-white hover:bg-neutral-100 text-neutral-900 shadow-lg'
-            }`}
-            title={isBookmarked ? 'Saved to board' : 'Save Pin'}
+            type="button"
+            onClick={handleGenerateImagePrompt}
+            className="px-3 py-1.5 rounded-full bg-white hover:bg-neutral-100 text-neutral-900 text-xs font-bold shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-1.5"
+            title="Open in AI Studio Prompt to Image Generator"
           >
-            {isBookmarked ? 'Saved' : 'Save'}
+            <Sparkles className="w-3.5 h-3.5 text-[#E60023]" />
+            <span>Generate</span>
+          </button>
+
+          {/* Save Icon Button in White */}
+          <button
+            type="button"
+            onClick={handleBookmark}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-1.5 ${
+              isBookmarked
+                ? 'bg-white text-[#E60023] ring-1 ring-[#E60023]/20'
+                : 'bg-white hover:bg-neutral-100 text-neutral-900'
+            }`}
+            title={isBookmarked ? 'Saved in your collection' : 'Save prompt to collection'}
+          >
+            <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-[#E60023] text-[#E60023]' : 'text-neutral-900'}`} />
+            <span>{isBookmarked ? 'Saved' : 'Save'}</span>
           </button>
         </div>
 
-        {/* Bottom Quick Copy Button & Generate Icon on Hover in White Colour */}
+        {/* Bottom Bar on Hover: Copy Button & AI Tool Badge */}
         <div className="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleCopy}
-              className="px-2.5 py-1 rounded-full bg-white hover:bg-neutral-100 backdrop-blur-md text-[10px] font-bold text-neutral-900 shadow-md hover:scale-105 transition-transform flex items-center gap-1"
-              title="Quick Copy Prompt"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3 h-3 text-emerald-600" />
-                  <span>Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3 text-neutral-900" />
-                  <span>Copy</span>
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={handleGenerateImagePrompt}
-              className="px-2.5 py-1 rounded-full bg-white hover:bg-neutral-100 backdrop-blur-md text-[10px] font-bold text-neutral-900 shadow-md hover:scale-105 transition-transform flex items-center gap-1"
-              title="Generate Image with this prompt"
-            >
-              <Sparkles className="w-3 h-3 text-[#E60023]" />
-              <span>Generate</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="px-3 py-1.5 rounded-full bg-white hover:bg-neutral-100 text-neutral-900 text-xs font-bold shadow-md hover:scale-105 transition-transform flex items-center gap-1.5"
+            title="Copy ready prompt"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-neutral-900" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
 
           {post.aiTool && (
-            <span className="px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md text-white text-[10px] font-bold truncate max-w-[100px]">
+            <span className="px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-[10px] font-bold truncate max-w-[110px] shadow-sm">
               {post.aiTool}
             </span>
           )}

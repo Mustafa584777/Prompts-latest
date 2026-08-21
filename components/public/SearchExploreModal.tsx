@@ -34,26 +34,34 @@ export const SearchExploreModal = () => {
     setCurrentView,
   } = useApp();
 
-  const [localInput, setLocalInput] = useState('');
+  const [localInput, setLocalInput] = useState(searchQuery || '');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync localInput with global searchQuery when modal opens
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isSearchModalOpen);
+  if (isSearchModalOpen !== prevIsOpen) {
+    setPrevIsOpen(isSearchModalOpen);
     if (isSearchModalOpen) {
       setLocalInput(searchQuery || '');
-      setTimeout(() => {
+    }
+  }
+
+  // Handle focus and body scroll lock when modal opens
+  useEffect(() => {
+    if (isSearchModalOpen) {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
       // Lock body scroll
       document.body.style.overflow = 'hidden';
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = 'unset';
+      };
     } else {
       document.body.style.overflow = 'unset';
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isSearchModalOpen, searchQuery]);
+  }, [isSearchModalOpen]);
 
   // Handle closing modal
   const handleClose = () => {

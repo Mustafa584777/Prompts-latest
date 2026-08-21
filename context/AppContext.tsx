@@ -206,7 +206,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setUserAccount(updatedAccount);
     StorageService.saveUserAccount(updatedAccount);
 
-    // eslint-disable-next-line react-hooks/purity
     const newReq = {
       id: 'req_' + Date.now(),
       userId: userAccount.id,
@@ -215,7 +214,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       requestText,
       category: category || 'General',
       status: 'pending' as const,
-      // eslint-disable-next-line react-hooks/purity
       createdAt: Date.now(),
       likesCount: 0,
     };
