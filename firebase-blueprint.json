@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "AI prompt posts with metadata and copy counts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "promptText": { "type": "string" },
+        "negativePrompt": { "type": "string" },
+        "aiTool": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "imageUrl": { "type": "string" },
+        "imageAspectRatio": { "type": "string" },
+        "isFeatured": { "type": "boolean" },
+        "status": { "type": "string" },
+        "viewsCount": { "type": "number" },
+        "copiesCount": { "type": "number" },
+        "likesCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "publishedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "promptText", "aiTool", "category"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Prompt categories for directory browsing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "icon": { "type": "string" },
+        "description": { "type": "string" },
+        "count": { "type": "number" }
+      },
+      "required": ["id", "name", "slug"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global website and admin configuration",
+      "type": "object",
+      "properties": {
+        "siteTitle": { "type": "string" },
+        "siteDescription": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "popularTags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Collection of prompt posts"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Collection of categories"
+    },
+    "/settings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "Site global configuration document"
+    },
+    "/tags/{tagId}": {
+      "description": "Global directory tags document"
+    }
+  }
+}
