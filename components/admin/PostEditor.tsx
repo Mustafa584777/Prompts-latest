@@ -589,9 +589,227 @@ export const PostEditor = () => {
 
       {/* Main 2-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Columns: Gemini AI Auto-Fill, Title & Prompt Form */}
+        {/* Left 2 Columns: Image Upload, Gemini AI Auto-Fill, Title & Prompt Form */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Gemini AI Prompt Copilot Widget */}
+          {/* Featured Image Management: Manual Upload & Direct URL (Above Title) */}
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-blue-600" />
+                <span>Featured Image & Media</span>
+              </h3>
+              {imageUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageUrl('');
+                    setUploadedFileInfo(null);
+                  }}
+                  className="text-[11px] font-semibold text-red-500 hover:text-red-600 hover:underline"
+                >
+                  Clear Image
+                </button>
+              )}
+            </div>
+
+            {/* Upload Method Switcher Tabs (Only Manual Upload and Direct URL) */}
+            <div className="flex items-center p-1 bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-neutral-800 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setImageSourceTab('upload')}
+                className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  imageSourceTab === 'upload'
+                    ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Manual Upload</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageSourceTab('url')}
+                className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  imageSourceTab === 'url'
+                    ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                <LinkIcon className="w-3.5 h-3.5" />
+                <span>Image URL</span>
+              </button>
+            </div>
+
+            {/* TAB 1: Manual File Upload (Drag & Drop + File Picker) */}
+            {imageSourceTab === 'upload' && (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleFileUpload(e.target.files[0]);
+                    }
+                  }}
+                  className="hidden"
+                  id="admin-image-file-input"
+                />
+
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`relative p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all flex flex-col items-center justify-center text-center group ${
+                    isDragging
+                      ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/40 scale-[0.99]'
+                      : 'border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-950/50 hover:border-blue-400 hover:bg-neutral-50 dark:hover:bg-neutral-950'
+                  }`}
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <FileUp className="w-6 h-6" />
+                  </div>
+                  <p className="text-xs font-bold text-neutral-900 dark:text-white mb-1">
+                    Click to browse or drag & drop photo
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    PNG, JPG, WebP, AVIF or GIF (up to 12MB)
+                  </p>
+                  {uploadedFileInfo && (
+                    <div className="mt-3 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span className="truncate max-w-[200px]">{uploadedFileInfo.name}</span>
+                      <span>({uploadedFileInfo.size})</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: Direct Image URL */}
+            {imageSourceTab === 'url' && (
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                  Direct Image Link (CDN, Unsplash, Imgur)
+                </label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    if (!imageAlt) setImageAlt(title);
+                    if (!imageFileName) setImageFileName(generateImageFileNameFromTitle(title));
+                  }}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white font-mono"
+                />
+              </div>
+            )}
+
+            {/* Active Image Preview Card */}
+            {imageUrl && (
+              <div className="space-y-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-500">
+                  <span>Current Preview</span>
+                  <span className="text-blue-600 dark:text-blue-400">Live Aspect Ratio 16:10</span>
+                </div>
+                <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-inner group">
+                  <Image
+                    src={imageUrl}
+                    alt={imageAlt || title || 'Preview'}
+                    fill
+                    className="object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-xl bg-white text-neutral-900 text-xs font-bold shadow-md hover:bg-neutral-100"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageUrl('');
+                        setUploadedFileInfo(null);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold shadow-md hover:bg-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Image SEO: Alt Text & File Name (Auto-derived from Title) */}
+            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950/70 border border-neutral-200 dark:border-neutral-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Image SEO & Accessibility Meta</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSyncImageMetaFromTitle}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  title="Auto-fill Alt Text and File Name from the post title"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Sync from Title</span>
+                </button>
+              </div>
+
+              {/* Alt Text Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
+                    Alt Text (Title Auto-Fill)
+                  </label>
+                  <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
+                    SEO Essential
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={imageAlt}
+                  onChange={(e) => setImageAlt(e.target.value)}
+                  placeholder={title || 'e.g. Cinematic 8K Golden Hour Portrait...'}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white"
+                />
+                <p className="text-[10px] text-neutral-500 mt-0.5">
+                  Automatically set to prompt title prior to publishing for Google Image SEO.
+                </p>
+              </div>
+
+              {/* Image File Name Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
+                    Image File Name (Clean Slug)
+                  </label>
+                  <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
+                    Canonical
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={imageFileName}
+                  onChange={(e) => setImageFileName(e.target.value)}
+                  placeholder={generateImageFileNameFromTitle(title || 'photo-prompt')}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white font-mono text-[11px]"
+                />
+                <p className="text-[10px] text-neutral-500 mt-0.5">
+                  Normalized filename slug derived from title for optimal CDN indexing.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Gemini AI Prompt Copilot Widget (Above Title) */}
           <div className="bg-gradient-to-br from-indigo-950/80 via-neutral-900 to-purple-950/80 p-6 rounded-3xl border border-indigo-800/60 shadow-xl text-white space-y-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -610,22 +828,40 @@ export const PostEditor = () => {
               </span>
             </div>
 
-            {/* Title / Concept Input Mode */}
+            {/* Auto-Fill Source Selection Dropdown */}
             <div>
-              <label className="block text-[11px] font-bold text-indigo-200 mb-1">
-                Prompt Concept / Subject
+              <label className="block text-[11px] font-bold text-indigo-200 mb-1.5 flex items-center justify-between">
+                <span>Auto-Fill Source</span>
+                <span className="text-[10px] text-indigo-400 font-normal">Choose mode</span>
               </label>
-              <input
-                type="text"
-                value={aiTopic}
-                onChange={(e) => setAiTopic(e.target.value)}
-                placeholder={title.trim() ? `Using title: "${title.trim().slice(0, 30)}..."` : 'e.g. Cyberpunk samurai cat in neon Tokyo rain...'}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-950/80 border border-indigo-700/60 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <p className="text-[10px] text-indigo-400 mt-1">
-                Leave blank to use post title automatically.
-              </p>
+              <select
+                value={autoFillMode}
+                onChange={(e) => setAutoFillMode(e.target.value as 'title' | 'image')}
+                className="w-full px-3 py-2.5 text-xs rounded-xl bg-neutral-950 border border-indigo-700/60 text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              >
+                <option value="image">Fill details based on Uploaded Image (Recommended)</option>
+                <option value="title">Fill details based on Title / Concept</option>
+              </select>
             </div>
+
+            {/* Title / Concept Input Mode */}
+            {autoFillMode === 'title' && (
+              <div>
+                <label className="block text-[11px] font-bold text-indigo-200 mb-1">
+                  Prompt Concept / Subject
+                </label>
+                <input
+                  type="text"
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  placeholder={title.trim() ? `Using title: "${title.trim().slice(0, 30)}..."` : 'e.g. Cyberpunk samurai cat in neon Tokyo rain...'}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-950/80 border border-indigo-700/60 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p className="text-[10px] text-indigo-400 mt-1">
+                  Leave blank to use post title automatically.
+                </p>
+              </div>
+            )}
 
             {/* Uploaded Image Mode Status */}
             {autoFillMode === 'image' && (

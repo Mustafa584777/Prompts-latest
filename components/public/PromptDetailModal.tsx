@@ -45,7 +45,22 @@ export const PromptDetailModal = () => {
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [showFullImageModal, setShowFullImageModal] = useState<boolean>(false);
 
+  // AI Prompt Variations state
+  const [isGeneratingVariations, setIsGeneratingVariations] = useState(false);
+  const [aiVariations, setAiVariations] = useState<{
+    style: string;
+    description: string;
+    prompt: string;
+  }[] | null>(null);
+  const [prevPostId, setPrevPostId] = useState<string | null>(null);
 
+  const currentPostId = selectedPost?.id ?? null;
+  // Reset variations state when active post changes during render
+  if (currentPostId !== prevPostId) {
+    setPrevPostId(currentPostId);
+    setAiVariations(null);
+    setIsGeneratingVariations(false);
+  }
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomSentinelRef = useRef<HTMLDivElement>(null);
@@ -204,7 +219,31 @@ export const PromptDetailModal = () => {
     }
   };
 
-
+  const handleGenerateVariations = async () => {
+    if (!selectedPost) return;
+    setIsGeneratingVariations(true);
+    try {
+      const tasteSummary = PersonalizationEngine.getTasteSummary(tasteProfile);
+      const res = await fetch('/api/gemini/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'prompt_variations',
+          currentPost: selectedPost,
+          profile: tasteSummary,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setAiVariations(data.data);
+      }
+    } catch (e) {
+      console.error('Failed to generate variations:', e);
+      showToast('Could not generate variations right now');
+    } finally {
+      setIsGeneratingVariations(false);
+    }
+  };
 
   const handleSelectPin = (pin: PromptPost) => {
     setSelectedPost(pin);
@@ -469,7 +508,67 @@ export const PromptDetailModal = () => {
                   </div>
                 </div>
 
+                {/* AI-Powered Variations Generator */}
+                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-[#E60023]/10 text-[#E60023] flex items-center justify-center">
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                        AI Personal Variations
+                      </span>
+                    </div>
 
+                    <button
+                      onClick={handleGenerateVariations}
+                      disabled={isGeneratingVariations}
+                      className="px-3 py-1 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[11px] font-bold hover:opacity-90 transition-all flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {isGeneratingVariations ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 text-[#E60023]" />
+                          <span>{aiVariations ? 'Regenerate' : 'Generate 3 Styles'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {aiVariations && aiVariations.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {aiVariations.map((v, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700/80 space-y-1.5"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                              {v.style}
+                            </span>
+                            <button
+                              onClick={() => copyPromptToClipboard(v.prompt)}
+                              className="text-[11px] font-bold text-[#E60023] hover:underline flex items-center gap-1"
+                            >
+                              <Copy className="w-3 h-3" />
+                              <span>Copy</span>
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                            {v.description}
+                          </p>
+                          <p className="text-[11px] font-mono text-neutral-800 dark:text-neutral-200 bg-neutral-50 dark:bg-neutral-950 p-2 rounded-lg line-clamp-2">
+                            {v.prompt}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {/* Tags */}
                 {selectedPost.tags && selectedPost.tags.length > 0 && (
