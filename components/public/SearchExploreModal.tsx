@@ -39,10 +39,8 @@ export const SearchExploreModal = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Sync localInput with global searchQuery when modal opens
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (isSearchModalOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalInput(searchQuery || '');
       setTimeout(() => {
         inputRef.current?.focus();

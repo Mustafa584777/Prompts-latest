@@ -228,7 +228,7 @@ export const PostEditor = () => {
 
   // AI Generator state
   const [aiTopic, setAiTopic] = useState('');
-  const [autoFillMode, setAutoFillMode] = useState<'title' | 'image'>('title');
+  const [autoFillMode, setAutoFillMode] = useState<'title' | 'image'>('image');
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
 
@@ -589,109 +589,227 @@ export const PostEditor = () => {
 
       {/* Main 2-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Columns: Main Article & Prompt Form */}
+        {/* Left 2 Columns: Image Upload, Gemini AI Auto-Fill, Title & Prompt Form */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Post Title */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-3">
-            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider">
-              Article & Prompt Title
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="e.g. Cinematic 8K Golden Hour Portrait with Hasselblad 50mm Lens..."
-              className="w-full text-lg sm:text-xl font-bold px-4 py-3 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Master Prompt Box */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
+          {/* Featured Image Management: Manual Upload & Direct URL (Above Title) */}
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                  Primary Copy-Paste Prompt
-                </h3>
-              </div>
-            </div>
-
-            <p className="text-xs text-neutral-500">
-              Enter the full ready-to-run prompt text with subjects, style descriptors, lighting instructions, and camera parameters.
-            </p>
-
-            <textarea
-              rows={6}
-              required
-              value={promptText}
-              onChange={(e) => setPromptText(e.target.value)}
-              placeholder="Close-up editorial portrait of a young model with intricate facial details, cinematic lighting, 85mm lens, 8k --ar 16:9 --v 6.1"
-              className="w-full p-4 rounded-2xl bg-neutral-950 text-neutral-100 border border-neutral-800 font-mono text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Right 1 Column: Publish Controls, AI Wizard, Categories & Featured Image */}
-        <div className="space-y-6">
-          {/* Publish Action Box */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                Publish Status
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-blue-600" />
+                <span>Featured Image & Media</span>
               </h3>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  status === 'published'
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                }`}
-              >
-                {status === 'published' ? 'Live on Site' : 'Draft'}
-              </span>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1">
-                Post Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white font-semibold"
-              >
-                <option value="published">🚀 Published (Live on Main Domain)</option>
-                <option value="draft">📝 Draft (Unpublished)</option>
-              </select>
-            </div>
-
-            <div className="pt-2 space-y-2">
-              <button
-                type="button"
-                onClick={() => handleSave(status)}
-                className="w-full py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                <span>{status === 'published' ? 'Publish Now' : 'Save Draft'}</span>
-              </button>
-
-              {existingPost && (
+              {imageUrl && (
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedPost(existingPost);
-                    setCurrentView('public');
+                    setImageUrl('');
+                    setUploadedFileInfo(null);
                   }}
-                  className="w-full py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  className="text-[11px] font-semibold text-red-500 hover:text-red-600 hover:underline"
                 >
-                  <Globe className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Preview on Live Site</span>
+                  Clear Image
                 </button>
               )}
             </div>
+
+            {/* Upload Method Switcher Tabs (Only Manual Upload and Direct URL) */}
+            <div className="flex items-center p-1 bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-neutral-800 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setImageSourceTab('upload')}
+                className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  imageSourceTab === 'upload'
+                    ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Manual Upload</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageSourceTab('url')}
+                className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  imageSourceTab === 'url'
+                    ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                <LinkIcon className="w-3.5 h-3.5" />
+                <span>Image URL</span>
+              </button>
+            </div>
+
+            {/* TAB 1: Manual File Upload (Drag & Drop + File Picker) */}
+            {imageSourceTab === 'upload' && (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleFileUpload(e.target.files[0]);
+                    }
+                  }}
+                  className="hidden"
+                  id="admin-image-file-input"
+                />
+
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`relative p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all flex flex-col items-center justify-center text-center group ${
+                    isDragging
+                      ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/40 scale-[0.99]'
+                      : 'border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-950/50 hover:border-blue-400 hover:bg-neutral-50 dark:hover:bg-neutral-950'
+                  }`}
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <FileUp className="w-6 h-6" />
+                  </div>
+                  <p className="text-xs font-bold text-neutral-900 dark:text-white mb-1">
+                    Click to browse or drag & drop photo
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    PNG, JPG, WebP, AVIF or GIF (up to 12MB)
+                  </p>
+                  {uploadedFileInfo && (
+                    <div className="mt-3 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span className="truncate max-w-[200px]">{uploadedFileInfo.name}</span>
+                      <span>({uploadedFileInfo.size})</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: Direct Image URL */}
+            {imageSourceTab === 'url' && (
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                  Direct Image Link (CDN, Unsplash, Imgur)
+                </label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    if (!imageAlt) setImageAlt(title);
+                    if (!imageFileName) setImageFileName(generateImageFileNameFromTitle(title));
+                  }}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white font-mono"
+                />
+              </div>
+            )}
+
+            {/* Active Image Preview Card */}
+            {imageUrl && (
+              <div className="space-y-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-500">
+                  <span>Current Preview</span>
+                  <span className="text-blue-600 dark:text-blue-400">Live Aspect Ratio 16:10</span>
+                </div>
+                <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-inner group">
+                  <Image
+                    src={imageUrl}
+                    alt={imageAlt || title || 'Preview'}
+                    fill
+                    className="object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-xl bg-white text-neutral-900 text-xs font-bold shadow-md hover:bg-neutral-100"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageUrl('');
+                        setUploadedFileInfo(null);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold shadow-md hover:bg-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Image SEO: Alt Text & File Name (Auto-derived from Title) */}
+            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950/70 border border-neutral-200 dark:border-neutral-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Image SEO & Accessibility Meta</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSyncImageMetaFromTitle}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  title="Auto-fill Alt Text and File Name from the post title"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Sync from Title</span>
+                </button>
+              </div>
+
+              {/* Alt Text Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
+                    Alt Text (Title Auto-Fill)
+                  </label>
+                  <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
+                    SEO Essential
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={imageAlt}
+                  onChange={(e) => setImageAlt(e.target.value)}
+                  placeholder={title || 'e.g. Cinematic 8K Golden Hour Portrait...'}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white"
+                />
+                <p className="text-[10px] text-neutral-500 mt-0.5">
+                  Automatically set to prompt title prior to publishing for Google Image SEO.
+                </p>
+              </div>
+
+              {/* Image File Name Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
+                    Image File Name (Clean Slug)
+                  </label>
+                  <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
+                    Canonical
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={imageFileName}
+                  onChange={(e) => setImageFileName(e.target.value)}
+                  placeholder={generateImageFileNameFromTitle(title || 'photo-prompt')}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white font-mono text-[11px]"
+                />
+                <p className="text-[10px] text-neutral-500 mt-0.5">
+                  Normalized filename slug derived from title for optimal CDN indexing.
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Gemini AI Prompt Copilot Widget */}
+          {/* Gemini AI Prompt Copilot Widget (Above Title) */}
           <div className="bg-gradient-to-br from-indigo-950/80 via-neutral-900 to-purple-950/80 p-6 rounded-3xl border border-indigo-800/60 shadow-xl text-white space-y-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -830,6 +948,49 @@ export const PostEditor = () => {
             </button>
           </div>
 
+          {/* Post Title */}
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-3">
+            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider">
+              Article & Prompt Title
+            </label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder="e.g. Cinematic 8K Golden Hour Portrait with Hasselblad 50mm Lens..."
+              className="w-full text-lg sm:text-xl font-bold px-4 py-3 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Master Prompt Box */}
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                  Primary Copy-Paste Prompt
+                </h3>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-500">
+              Enter the full ready-to-run prompt text with subjects, style descriptors, lighting instructions, and camera parameters.
+            </p>
+
+            <textarea
+              rows={6}
+              required
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              placeholder="Close-up editorial portrait of a young model with intricate facial details, cinematic lighting, 85mm lens, 8k --ar 16:9 --v 6.1"
+              className="w-full p-4 rounded-2xl bg-neutral-950 text-neutral-100 border border-neutral-800 font-mono text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Right 1 Column: Categories & Taxonomy, SEO Meta Settings */}
+        <div className="space-y-6">
           {/* Category & AI Taxonomy Manager */}
           <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
